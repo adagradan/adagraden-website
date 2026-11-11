@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64.00 64.00" width="64" height="64" role="img" aria-labelledby="t">
+  <title id="t">Ada Gradan Compassionate Care Hands Foundation</title>
+  <rect width="64" height="64" rx="14" fill="#111111"/>
+  <g transform="translate(11.00 11.00) scale(0.65625)">
+    <g fill="#FFFFFF"><path d="M9 14c-4 0-5.5 4-5.5 9C3.5 43 16 56.5 29.8 57.5c.9.07 1.5-.6 1.5-1.5v-5.3c0-.8-.6-1.4-1.4-1.5C19.3 48 14 38.5 14.5 22c.1-5-1.5-8-5.5-8z"/><path d="M9 14c-4 0-5.5 4-5.5 9C3.5 43 16 56.5 29.8 57.5c.9.07 1.5-.6 1.5-1.5v-5.3c0-.8-.6-1.4-1.4-1.5C19.3 48 14 38.5 14.5 22c.1-5-1.5-8-5.5-8z" transform="translate(64 0) scale(-1 1)"/></g>
+    <circle cx="32" cy="28" r="9" fill="#F5D65E"/>
+  </g>
+</svg>
