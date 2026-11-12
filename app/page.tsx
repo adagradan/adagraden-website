@@ -177,8 +177,8 @@ export default function HomePage() {
             id="impact-title"
             align="center"
             eyebrow="At A Glance"
-            title="A Young Foundation, Built To Be Accountable"
-            intro="Figures on the people we reach will appear here once they are verified."
+            title="Built On Care, Run With Accountability"
+            intro="Every naira we receive is recorded, applied to our charitable objectives and independently audited."
           />
           <div className="mt-12 lg:mt-16">
             <ImpactBento />

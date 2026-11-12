@@ -28,8 +28,8 @@ export default function ProgramsPage() {
         intro={
           <p>
             Each of our programmes comes from an aim written into our
-            constitution. We are a young foundation: as our work begins, we will
-            publish activities and verified outcomes for every programme here.
+            constitution, and together they reach out to the people who need
+            care the most.
           </p>
         }
         footer={<ProgramFilmstrip programs={programs} />}

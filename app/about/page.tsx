@@ -61,7 +61,7 @@ export default function AboutPage() {
               { value: "Owerri, Imo State", label: "Where we are based" },
               { value: "6 programmes", label: "From education to medical care" },
               { value: "8 groups", label: "Of people our constitution commits us to" },
-              { value: `Since ${org.registeredYear}`, label: "A young foundation" },
+              { value: "Annual audit", label: "Of our accounts, by independent auditors" },
             ]}
           />
         }
@@ -191,8 +191,8 @@ export default function AboutPage() {
               className="lg:col-span-7"
             />
             <p className="text-body text-on-dark-muted lg:col-span-5" data-reveal="up" style={i(2)}>
-              We are a young foundation. These are the milestones on public
-              record so far; we will add to them as our work grows.
+              The milestones that shape our story, and the ones still to
+              come as our work grows.
             </p>
           </div>
           <div className="mt-14 lg:mt-20">
@@ -286,7 +286,7 @@ export default function AboutPage() {
 
       {/* 9 — Call to action */}
       <CTABanner
-        title="Stand With Us As We Begin"
+        title="Stand With Us, Change A Life"
         text="Every gift is recorded, applied only to our charitable objectives and independently audited each year."
         image={photos.motherCradlingBaby}
       />

@@ -35,17 +35,7 @@ export default function BlogPage() {
             our work.
           </p>
         }
-      >
-        {!posts.length && (
-          <p className="inline-flex items-center gap-3 rounded-full border border-line py-2 pr-5 pl-2 text-meta">
-            <span className="relative grid size-7 place-items-center">
-              <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-full bg-accent/50 motion-reduce:animate-none" />
-              <span aria-hidden="true" className="relative size-2.5 rounded-full bg-accent" />
-            </span>
-            We are a young foundation. Our first stories are on the way.
-          </p>
-        )}
-      </PageHero>
+      />
 
       {featured && (
         <Section aria-label="Featured article" className="pt-0! md:pt-0! lg:pt-0!">
@@ -82,7 +72,7 @@ export default function BlogPage() {
 
       <CTABanner
         title="Be Part Of The Stories We Tell"
-        text="Your support helps us begin the work these pages will one day report on."
+        text="Your support makes the next story possible."
         image={photos.childrenLaughing}
       />
     </PageTransition>

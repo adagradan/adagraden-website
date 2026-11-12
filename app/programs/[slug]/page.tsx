@@ -172,11 +172,9 @@ export default async function ProgramPage({ params }: PageProps<"/programs/[slug
               }`}
             >
               <div>
-                <p className="text-micro font-semibold tracking-[0.08em] text-on-dark-muted uppercase">Our progress</p>
+                <p className="text-micro font-semibold tracking-[0.08em] text-on-dark-muted uppercase">Stay updated</p>
                 <p className="mt-4 text-body">
-                  We are a young foundation. As this programme gets
-                  under way, we will publish its activities and verified outcomes
-                  here, rather than make claims we cannot yet support.
+                  Follow this programme here. We will share its activities, the people it reaches and its results as the work unfolds.
                 </p>
               </div>
               {article && (
@@ -227,7 +225,7 @@ export default async function ProgramPage({ params }: PageProps<"/programs/[slug
 
       {/* 5 — CTA */}
       <CTABanner
-        title={`Help Us Begin ${program.shortTitle}`}
+        title={`Support ${program.shortTitle}`}
         text="Every gift is recorded, applied only to our charitable objectives and independently audited each year."
         image={index === 3 ? photos.motherCradlingBaby : photos.familyMotherChild}
       />

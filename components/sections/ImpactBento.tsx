@@ -104,7 +104,7 @@ export function ImpactBento() {
         i={1}
         value={org.registeredYear}
         label="Caring Since"
-        text="A young foundation, rooted in Owerri, Imo State."
+        text="Rooted in Owerri, Imo State."
       />
 
       {/* Tall dark card */}
