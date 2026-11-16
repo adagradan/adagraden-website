@@ -1,6 +1,7 @@
 import "server-only";
 import { randomBytes, randomInt } from "node:crypto";
 import { causeLabel } from "@/lib/donate";
+import { dbConfigured, donations } from "./db";
 import { verifyByReference } from "./flutterwave";
 import { sendCardReceipt, type CardReceipt } from "./mail";
 
@@ -39,12 +40,46 @@ export async function finalizeCardDonation(txRef: string): Promise<FinalizeResul
   };
 
   let emailed = false;
+  let emailError: string | undefined;
   if (receipt.email) {
     try {
       await sendCardReceipt(receipt);
       emailed = true;
     } catch (e) {
-      console.error("[donate] receipt email failed", txRef, e instanceof Error ? e.message : e);
+      emailError = e instanceof Error ? e.message : String(e);
+      console.error("[donate] receipt email failed", txRef, emailError);
+    }
+  }
+
+  // Card gifts are confirmed by Flutterwave, so they are recorded as already
+  // acknowledged. Upsert: the page and the webhook may both get here.
+  if (dbConfigured()) {
+    try {
+      const amountMinor = Math.round(tx.amount * 100);
+      await (await donations()).updateOne(
+        { reference: tx.tx_ref },
+        {
+          $setOnInsert: {
+            reference: tx.tx_ref,
+            method: "card",
+            donor: { name: receipt.name, email: receipt.email, anonymous: false },
+            amountMinor,
+            currency: tx.currency,
+            cause: tx.meta?.cause ?? "all",
+            causeLabel: receipt.causeLabel,
+            createdAt: receipt.paidAt,
+            acknowledgement: {
+              at: new Date(),
+              by: "Flutterwave (automatic)",
+              receivedMinor: amountMinor,
+              ...(emailed ? { emailSentAt: new Date() } : { emailError }),
+            },
+          },
+        },
+        { upsert: true },
+      );
+    } catch (e) {
+      console.error("[donate] could not record card gift", txRef, e instanceof Error ? e.message : e);
     }
   }
   return { state: "successful", receipt, emailed };

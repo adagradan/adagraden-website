@@ -1,25 +1,47 @@
 "use client";
 
-import { useActionState, useEffect, useId, useRef, useState } from "react";
-import { pledgeTransfer, startCardDonation, type DonateState } from "@/app/donate/actions";
+import { useActionState, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { pledgeTransfer, startCardDonation, type DonateState } from "@/app/(site)/donate/actions";
 import { fieldClass } from "@/components/ui/FormField";
 import { BANK, CAUSES, CURRENCIES, CURRENCY_CODES, causeLabel, formatMoney, type CurrencyCode } from "@/lib/donate";
 
 const init: DonateState = { ok: false, message: "" };
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const chip = (on: boolean) =>
   `inline-flex min-h-11 items-center rounded-full border px-4 text-meta font-medium transition-colors duration-200 ${
     on ? "border-ink bg-ink text-on-ink" : "border-line hover:border-ink"
   }`;
 
-function StepLabel({ n, children }: { n: number; children: React.ReactNode }) {
+/* --------------------------------------------------------------- pieces */
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return <legend className="mb-4 text-body font-semibold">{children}</legend>;
+}
+
+/** "Step 1 of 2" progress, visible and announced. */
+function StepTrack({ current }: { current: 1 | 2 }) {
+  const steps = ["Your details", "Your gift"];
   return (
-    <legend className="mb-5 flex items-center gap-3 text-body font-semibold">
-      <span aria-hidden="true" className="grid size-7 place-items-center rounded-full bg-accent text-micro font-semibold text-on-accent">
-        {n}
-      </span>
-      {children}
-    </legend>
+    <ol aria-label={`Step ${current} of 2`} className="flex flex-wrap items-center gap-3 text-micro font-semibold">
+      {steps.map((s, i) => {
+        const n = i + 1;
+        const state = n < current ? "done" : n === current ? "current" : "todo";
+        return (
+          <li key={s} aria-current={state === "current" ? "step" : undefined} className="flex items-center gap-3">
+            <span
+              className={`grid size-6 place-items-center rounded-full ${
+                state === "todo" ? "border border-line text-muted" : state === "done" ? "bg-ink text-on-ink" : "bg-accent text-on-accent"
+              }`}
+            >
+              {state === "done" ? "✓" : n}
+            </span>
+            <span className={state === "todo" ? "text-muted" : ""}>{s}</span>
+            {n < steps.length && <span aria-hidden="true" className="h-px w-8 bg-line" />}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -79,35 +101,66 @@ function Account({ currency }: { currency: CurrencyCode }) {
   );
 }
 
+/* ------------------------------------------------------------------ form */
+
+/**
+ * Two steps:
+ *  1. Name (optional = anonymous) and email (required).
+ *  2. What it supports, currency, amount, payment method and — only now —
+ *     the account details.
+ */
 export function DonationForm({ initialCause = "all", cardEnabled = false }: { initialCause?: string; cardEnabled?: boolean }) {
   const [tState, tAction, tPending] = useActionState(pledgeTransfer, init);
   const [cState, cAction, cPending] = useActionState(startCardDonation, init);
-  const [cause, setCause] = useState(CAUSES.some((c) => c.id === initialCause) ? initialCause : "all");
+  const [step, setStep] = useState<1 | 2>(1);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [currency, setCurrency] = useState<CurrencyCode>("NGN");
   const [amount, setAmount] = useState<number | "">(CURRENCIES.NGN.presets[1]);
+  const [cause, setCause] = useState(CAUSES.some((c) => c.id === initialCause) ? initialCause : "all");
   const [method, setMethod] = useState<"transfer" | "card">("transfer");
+  const [errors, setErrors] = useState<{ email?: string; amount?: string }>({});
   const [dismissed, setDismissed] = useState(false);
+  const stepTwoRef = useRef<HTMLDivElement>(null);
   const thanksRef = useRef<HTMLHeadingElement>(null);
   const id = useId();
 
+  const min = CURRENCIES[currency].min;
   const money = typeof amount === "number" && amount > 0 ? formatMoney(amount, currency) : "";
   const pending = tPending || cPending;
   const state = method === "card" ? cState : tState;
   const label = causeLabel(cause);
+  const showThanks = Boolean(tState.ok && tState.reference && !dismissed);
+
   const changeCurrency = (c: CurrencyCode) => {
     setCurrency(c);
     setAmount(CURRENCIES[c].presets[1]);
+    setErrors((e) => ({ ...e, amount: undefined }));
   };
-  const showThanks = tState.ok && tState.reference && !dismissed;
 
   useEffect(() => {
     if (showThanks) thanksRef.current?.focus();
   }, [showThanks]);
 
-  /* ---------------- after a transfer pledge: reference + account ---------------- */
+  const continueToStepTwo = (e: FormEvent) => {
+    e.preventDefault();
+    const next: typeof errors = {};
+    if (!EMAIL_RE.test(email.trim())) next.email = "Please enter a valid email address. We send your transfer details and receipt there.";
+    setErrors(next);
+    if (next.email) {
+      document.getElementById(`${id}-email`)?.focus();
+      return;
+    }
+    setEmail(email.trim());
+    setName(name.trim());
+    setStep(2);
+    requestAnimationFrame(() => stepTwoRef.current?.focus());
+  };
+
+  /* ------------------------- after a transfer pledge ------------------------- */
   if (showThanks) {
     return (
-      <div className="mx-auto max-w-2xl rounded-card border border-line bg-surface p-6 sm:p-10">
+      <div className="panel-swap mx-auto max-w-2xl rounded-card border border-line bg-surface p-6 sm:p-10">
         <div className="text-center">
           <span aria-hidden="true" className="heartbeat mx-auto grid size-14 place-items-center rounded-full bg-accent text-section text-on-accent">
             ♥
@@ -140,21 +193,21 @@ export function DonationForm({ initialCause = "all", cardEnabled = false }: { in
           </li>
           <li className="flex gap-3">
             <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink text-micro text-on-ink">2</span>
-            We match your gift when it arrives and send you a receipt.
+            We match your gift when it arrives and send you a thank-you receipt.
           </li>
         </ol>
 
-        <p
-          role="status"
-          className={`mt-6 rounded-card p-4 text-meta ${tState.emailed ? "bg-surface-alt" : "border border-accent bg-accent/15"}`}
-        >
+        <p role="status" className={`mt-6 rounded-card p-4 text-meta ${tState.emailed ? "bg-surface-alt" : "border border-accent bg-accent/15"}`}>
           {tState.emailed
-            ? "We have also emailed these details to you. Check your spam folder if you can't see them."
+            ? `We have also emailed these details to ${email}. Check your spam folder if you can't see them.`
             : "We couldn't email these details just now, so please take a screenshot of this page."}
         </p>
         <button
           type="button"
-          onClick={() => setDismissed(true)}
+          onClick={() => {
+            setDismissed(true);
+            setStep(1);
+          }}
           className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full border border-ink/20 text-button font-semibold transition-colors hover:border-ink"
         >
           Make another gift
@@ -163,56 +216,137 @@ export function DonationForm({ initialCause = "all", cardEnabled = false }: { in
     );
   }
 
-  /* ---------------------------------- the form ---------------------------------- */
+  /* ------------------ step 1: who is giving, and how much ------------------ */
+  if (step === 1) {
+    return (
+      <form
+        onSubmit={continueToStepTwo}
+        noValidate
+        className="panel-swap mx-auto max-w-2xl rounded-card border border-line bg-surface p-6 shadow-[0_24px_64px_-24px_rgb(0_0_0/0.18)] sm:p-10"
+      >
+        <StepTrack current={1} />
+        <h2 className="mt-6 text-section font-medium">First, tell us who is giving</h2>
+        <p className="mt-2 text-meta text-muted">Next, you choose your gift and see where to send it.</p>
+
+        <div className="mt-8 flex flex-col gap-8">
+          <div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label htmlFor={`${id}-name`} className="text-meta font-semibold">
+                  Name <span className="font-normal text-muted">(optional)</span>
+                </label>
+                <input
+                  id={`${id}-name`}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                  maxLength={100}
+                  aria-describedby={`${id}-name-hint`}
+                  className={fieldClass()}
+                />
+                <p id={`${id}-name-hint`} className="text-micro text-muted">
+                  Leave blank to give anonymously.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label htmlFor={`${id}-email`} className="text-meta font-semibold">
+                  Email address <span aria-hidden="true" className="text-muted">*</span>
+                </label>
+                <input
+                  id={`${id}-email`}
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setErrors((x) => ({ ...x, email: undefined }));
+                  }}
+                  required
+                  autoComplete="email"
+                  inputMode="email"
+                  placeholder="you@example.com"
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? `${id}-email-error` : `${id}-email-hint`}
+                  className={fieldClass(!!errors.email)}
+                />
+                {errors.email ? (
+                  <p id={`${id}-email-error`} role="alert" className="text-meta font-medium text-danger">
+                    {errors.email}
+                  </p>
+                ) : (
+                  <p id={`${id}-email-hint`} className="text-micro text-muted">
+                    For your account details, reference and receipt.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <button className="mt-10 inline-flex min-h-13 w-full items-center justify-center gap-3 rounded-full bg-accent px-6 text-button font-semibold text-on-accent transition-colors duration-300 hover:bg-ink hover:text-on-ink">
+          Continue to your gift <span aria-hidden="true">→</span>
+        </button>
+      </form>
+    );
+  }
+
+  /* ------------- step 2: what it supports, method, account details ------------- */
   return (
     <form
       action={method === "card" ? cAction : tAction}
-      onSubmit={() => setDismissed(false)}
-      className="grid gap-10 lg:grid-cols-12 lg:gap-12"
-    >
+      onSubmit={(e) => {
+        if (typeof amount !== "number" || !Number.isFinite(amount) || amount < min) {
+          e.preventDefault();
+          setErrors((x) => ({ ...x, amount: `Please enter an amount of at least ${formatMoney(min, currency)}.` }));
+          document.getElementById(`${id}-amount`)?.focus();
+          return;
+        }
+        setDismissed(false);
+      }}
+      noValidate
+      className="panel-swap grid gap-10 lg:grid-cols-12 lg:gap-12">
       {/* Honeypot: hidden from people and assistive tech */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label htmlFor={`${id}-company`}>Company</label>
         <input id={`${id}-company`} name="company" tabIndex={-1} autoComplete="off" />
       </div>
-      <input type="hidden" name="cause" value={cause} />
+      {/* Step 1 answers, carried into the submission */}
+      <input type="hidden" name="name" value={name} />
+      <input type="hidden" name="email" value={email} />
       <input type="hidden" name="currency" value={currency} />
+      <input type="hidden" name="amount" value={amount} />
+      <input type="hidden" name="cause" value={cause} />
 
-      <div className="flex flex-col gap-10 lg:col-span-7">
-        <fieldset className="flex flex-col gap-5">
-          <StepLabel n={1}>Your details</StepLabel>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label htmlFor={`${id}-name`} className="text-meta font-semibold">
-                Name {method === "card" ? <span aria-hidden="true" className="text-muted">*</span> : <span className="font-normal text-muted">(optional)</span>}
-              </label>
-              <input id={`${id}-name`} name="name" autoComplete="name" required={method === "card"} className={fieldClass()} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor={`${id}-email`} className="text-meta font-semibold">
-                Email address <span aria-hidden="true" className="text-muted">*</span>
-              </label>
-              <input
-                id={`${id}-email`}
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                inputMode="email"
-                placeholder="you@example.com"
-                aria-describedby={`${id}-email-hint`}
-                className={fieldClass()}
-              />
-            </div>
-          </div>
-          <p id={`${id}-email-hint`} className="-mt-2 text-micro text-muted">
-            Your transfer details and receipt are sent here.
+      <div ref={stepTwoRef} tabIndex={-1} className="flex flex-col gap-8 rounded-card border border-line bg-surface p-5 outline-none sm:p-8 lg:col-span-7">
+        <StepTrack current={2} />
+
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-card bg-surface-alt p-4">
+          <p className="flex items-center gap-3 text-meta">
+            <span aria-hidden="true" className="grid size-7 place-items-center rounded-full bg-ink text-micro font-semibold text-on-ink">
+              ✓
+            </span>
+            <span>
+              Giving as <strong>{name || "Anonymous"}</strong>
+              <span className="block text-micro text-muted">{email}</span>
+            </span>
           </p>
-        </fieldset>
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="inline-flex min-h-10 items-center rounded-full px-3 text-meta font-semibold underline underline-offset-4 hover:text-muted"
+          >
+            Change
+          </button>
+        </div>
 
-        <fieldset className="flex flex-col gap-5">
-          <StepLabel n={2}>What should it support?</StepLabel>
-          <select aria-label="What should your gift support?" value={cause} onChange={(e) => setCause(e.target.value)} className={`${fieldClass()} min-h-12 sm:hidden`}>
+        <fieldset>
+          <SectionLabel>What should it support?</SectionLabel>
+          <select
+            aria-label="What should your gift support?"
+            value={cause}
+            onChange={(e) => setCause(e.target.value)}
+            className={`${fieldClass()} min-h-12 sm:hidden`}
+          >
             {CAUSES.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.label}
@@ -228,8 +362,8 @@ export function DonationForm({ initialCause = "all", cardEnabled = false }: { in
           </div>
         </fieldset>
 
-        <fieldset className="flex flex-col gap-5">
-          <StepLabel n={3}>Currency and amount</StepLabel>
+        <fieldset>
+          <SectionLabel>Currency</SectionLabel>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Currency">
             {CURRENCY_CODES.map((c) => (
               <button
@@ -248,33 +382,63 @@ export function DonationForm({ initialCause = "all", cardEnabled = false }: { in
               </button>
             ))}
           </div>
+        </fieldset>
+
+        <fieldset>
+          <SectionLabel>Amount</SectionLabel>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Suggested amounts">
             {CURRENCIES[currency].presets.map((a) => (
-              <button type="button" key={a} aria-pressed={amount === a} onClick={() => setAmount(a)} className={chip(amount === a)}>
+              <button
+                type="button"
+                key={a}
+                aria-pressed={amount === a}
+                onClick={() => {
+                  setAmount(a);
+                  setErrors((x) => ({ ...x, amount: undefined }));
+                }}
+                className={chip(amount === a)}
+              >
                 {formatMoney(a, currency)}
               </button>
             ))}
           </div>
-          <div className="flex max-w-xs flex-col gap-2">
+          <div className="mt-4 flex max-w-xs flex-col gap-2">
             <label htmlFor={`${id}-amount`} className="text-meta font-semibold">
-              Amount ({currency}) <span aria-hidden="true" className="text-muted">*</span>
+              Or enter an amount ({currency}) <span aria-hidden="true" className="text-muted">*</span>
             </label>
-            <input
-              id={`${id}-amount`}
-              name="amount"
-              type="number"
-              inputMode="decimal"
-              min={CURRENCIES[currency].min}
-              step="any"
-              required
-              value={amount}
-              onChange={(e) => setAmount(e.target.value === "" ? "" : Number(e.target.value))}
-              aria-describedby={`${id}-amount-hint`}
-              className={fieldClass()}
-            />
-            <p id={`${id}-amount-hint`} className="text-micro text-muted">
-              Minimum {formatMoney(CURRENCIES[currency].min, currency)}
-            </p>
+            <div
+              className={`flex items-center gap-2 rounded-card border bg-surface px-4 focus-within:border-ink ${
+                errors.amount ? "border-danger" : "border-line"
+              }`}
+            >
+              <span aria-hidden="true" className="font-semibold text-muted">
+                {CURRENCIES[currency].symbol}
+              </span>
+              <input
+                id={`${id}-amount`}
+                type="number"
+                inputMode="decimal"
+                min={min}
+                step="any"
+                value={amount}
+                onChange={(e) => {
+                  setAmount(e.target.value === "" ? "" : Number(e.target.value));
+                  setErrors((x) => ({ ...x, amount: undefined }));
+                }}
+                aria-invalid={!!errors.amount}
+                aria-describedby={errors.amount ? `${id}-amount-error` : `${id}-amount-hint`}
+                className="w-full bg-transparent py-3 text-body outline-none"
+              />
+            </div>
+            {errors.amount ? (
+              <p id={`${id}-amount-error`} role="alert" className="text-meta font-medium text-danger">
+                {errors.amount}
+              </p>
+            ) : (
+              <p id={`${id}-amount-hint`} className="text-micro text-muted">
+                Minimum {formatMoney(min, currency)}
+              </p>
+            )}
           </div>
         </fieldset>
       </div>
@@ -319,13 +483,14 @@ export function DonationForm({ initialCause = "all", cardEnabled = false }: { in
               <p className="mb-1 text-meta font-semibold">Send your {currency} gift to:</p>
               <Account currency={currency} />
               <p className="mt-3 rounded-card bg-surface-alt p-3 text-micro leading-relaxed">
-                Tap the button below and we will email you these details with a reference to quote, then match your
-                gift when it arrives.
+                Tap the button below and we will email you these details with a reference to quote, then match your gift when it
+                arrives.
               </p>
             </div>
           ) : (
             <p className="mt-4 rounded-card bg-surface-alt p-3 text-meta leading-relaxed">
               You will be taken to Flutterwave to pay securely by card. We never see or store your card details.
+              {!name && " Please go back and add your name: it appears on your card receipt."}
             </p>
           )}
 
@@ -337,13 +502,11 @@ export function DonationForm({ initialCause = "all", cardEnabled = false }: { in
 
           <button
             disabled={pending}
-            className="group mt-6 inline-flex min-h-13 w-full items-center justify-center gap-3 rounded-full bg-accent px-6 text-button font-semibold text-on-accent transition-colors duration-300 hover:bg-ink hover:text-on-ink disabled:cursor-progress disabled:opacity-70"
+            className="mt-6 inline-flex min-h-13 w-full items-center justify-center gap-3 rounded-full bg-accent px-6 text-button font-semibold text-on-accent transition-colors duration-300 hover:bg-ink hover:text-on-ink disabled:cursor-progress disabled:opacity-70"
           >
             {pending ? "One moment…" : method === "transfer" ? "I'm giving by transfer. Email me the details" : `Donate ${money}`}
           </button>
-          <p className="mt-4 text-center text-micro leading-relaxed text-muted">
-            Please only use the account details shown on this page.
-          </p>
+          <p className="mt-4 text-center text-micro leading-relaxed text-muted">Please only use the account details shown on this page.</p>
         </div>
       </aside>
     </form>

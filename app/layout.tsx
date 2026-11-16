@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { MotionScript } from "@/components/motion/MotionScript";
 import { ThemeScript } from "@/components/theme/ThemeScript";
@@ -71,17 +69,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             injects noindex on 404s, which would then mismatch on hydration). */}
         <ThemeScript />
         <MotionScript />
-        <a
-          href="#main"
-          className="sr-only z-[60] rounded-full bg-ink px-5 py-3 text-meta font-semibold text-on-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
-        >
-          Skip to main content
-        </a>
-        <Header />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        {children}
         <MotionProvider />
         <script
           type="application/ld+json"

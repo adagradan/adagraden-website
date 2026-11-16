@@ -6,6 +6,7 @@ import { siteUrl } from "@/lib/site";
 import { cardPaymentsEnabled } from "@/lib/server/env";
 import { createPaymentLink } from "@/lib/server/flutterwave";
 import { newCardRef, newTransferRef } from "@/lib/server/donations";
+import { dbConfigured, donations } from "@/lib/server/db";
 import { mailConfigured, sendTransferInstructions } from "@/lib/server/mail";
 
 export type DonateState = { ok: boolean; message: string; reference?: string; emailed?: boolean };
@@ -40,18 +41,44 @@ export async function pledgeTransfer(_: DonateState, fd: FormData): Promise<Dona
   if ("error" in gift) return { ok: false, message: gift.error! };
 
   const reference = newTransferRef();
+  const anonymous = !name;
+  const label = causeLabel(gift.cause);
+
+  // Record the pledge for the admin dashboard. Giving must never fail because
+  // of the database: the email (copied to NOTIFY_EMAIL) is the fallback record.
+  let saved = false;
+  if (dbConfigured()) {
+    try {
+      const col = await donations();
+      const recent = await col.countDocuments({
+        "donor.email": email,
+        method: "bank-transfer",
+        createdAt: { $gt: new Date(Date.now() - 3_600_000) },
+      });
+      if (recent >= 5)
+        return { ok: false, message: "You have logged several gifts in the last hour. Please check your email, or try again a little later." };
+      await col.insertOne({
+        reference,
+        method: "bank-transfer",
+        donor: { name: name || "Anonymous", email, anonymous },
+        amountMinor: Math.round(gift.amount * 100),
+        currency: gift.currency,
+        cause: gift.cause,
+        causeLabel: label,
+        createdAt: new Date(),
+      });
+      saved = true;
+    } catch (e) {
+      console.error("[donate] could not record pledge", reference, e instanceof Error ? e.message : e);
+    }
+  }
+
   let emailed = false;
   if (mailConfigured()) {
     try {
-      await sendTransferInstructions({
-        reference,
-        name: name || "Friend",
-        email,
-        amount: gift.amount,
-        currency: gift.currency,
-        causeLabel: causeLabel(gift.cause),
-      });
+      await sendTransferInstructions({ reference, name: name || "Friend", email, amount: gift.amount, currency: gift.currency, causeLabel: label });
       emailed = true;
+      if (saved) await (await donations()).updateOne({ reference }, { $set: { instructionsEmailedAt: new Date() } });
     } catch (e) {
       console.error("[donate] transfer email failed", reference, e instanceof Error ? e.message : e);
     }

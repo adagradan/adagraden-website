@@ -99,8 +99,8 @@ export default function DonatePage() {
             "Applied solely to our charitable objectives",
             "Accounts independently audited every year",
           ].map((t) => (
-            <li key={t} className="flex items-center gap-3 text-meta">
-              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent text-on-accent">
+            <li key={t} className="flex items-center gap-3 text-meta text-muted">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full border border-line text-ink">
                 <ShieldCheck className="size-3.5" />
               </span>
               {t}
@@ -110,8 +110,20 @@ export default function DonatePage() {
       </PageHero>
 
       {/* 2 — The gift builder */}
-      <section id="give" aria-label="Make a gift" className="scroll-mt-[calc(var(--header-h)+1rem)] bg-surface pb-16 md:pb-24">
+      <section
+        id="give"
+        aria-labelledby="give-title"
+        className="scroll-mt-[calc(var(--header-h)+1rem)] border-y border-line bg-surface-alt py-14 md:py-20"
+      >
         <Container>
+          <div className="mb-8 flex flex-col gap-2 md:mb-10">
+            <p className="text-meta font-medium">
+              <span aria-hidden="true">/ </span>Make Your Gift<span aria-hidden="true"> /</span>
+            </p>
+            <h2 id="give-title" className="text-section font-medium">
+              Two Quick Steps
+            </h2>
+          </div>
           <div className="load-fade-up" style={{ "--d": "0.6s" } as CSSProperties}>
             <Suspense fallback={<DonationForm cardEnabled={card} />}>
               <DonationFormWithParams cardEnabled={card} />
@@ -121,7 +133,7 @@ export default function DonatePage() {
       </section>
 
       {/* 3 — What your gift supports */}
-      <Section tone="alt" aria-labelledby="supports-title">
+      <Section aria-labelledby="supports-title">
         <Container>
           <SectionHeading
             id="supports-title"

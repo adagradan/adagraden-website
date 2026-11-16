@@ -173,6 +173,71 @@ ${table(rows)}
   });
 }
 
+/* --------------------------------------------- transfer acknowledgement */
+
+export type Acknowledgement = {
+  reference: string;
+  name: string;
+  anonymous: boolean;
+  email: string;
+  receivedAmount: number;
+  currency: string;
+  causeLabel: string;
+  receivedAt: Date;
+};
+
+export const acknowledgementRows = (a: Acknowledgement): [string, string][] => [
+  ["Reference", a.reference],
+  ["Date received", a.receivedAt.toLocaleDateString("en-GB", { dateStyle: "long", timeZone: "Africa/Lagos" })],
+  ["Donor", a.anonymous ? "Anonymous" : a.name],
+  ["Supporting", a.causeLabel],
+  ["Amount received", formatMoney(a.receivedAmount, a.currency)],
+];
+
+/** Sent when an admin confirms a bank transfer arrived. Doubles as the receipt. */
+export async function sendAcknowledgement(a: Acknowledgement) {
+  const amount = formatMoney(a.receivedAmount, a.currency);
+  const rows = acknowledgementRows(a);
+  const greeting = a.anonymous ? "Thank you." : `Thank you, ${esc(firstName(a.name))}.`;
+  const html = layout(
+    "Gift received",
+    `<h1 style="font-size:24px;margin:0 0 12px;font-weight:600">${greeting}</h1>
+<p style="font-size:15px;line-height:1.6;margin:0 0 24px;color:#444">We have received your gift of <strong>${esc(amount)}</strong>, and it will go toward <strong>${esc(a.causeLabel)}</strong>. From all of us, thank you for standing with the people we serve.</p>
+${table(rows)}
+<p style="font-size:13px;line-height:1.6;color:#6b6b6b;margin:24px 0 0">Please keep this email as your receipt. Questions? Simply reply to this email.</p>`,
+  );
+  const text = `${a.anonymous ? "Thank you." : `Thank you, ${firstName(a.name)}.`}\n\nWe have received your gift of ${amount}, and it will go toward ${a.causeLabel}.\n\n${rows
+    .map(([k, v]) => `${k}: ${v}`)
+    .join("\n")}\n\nPlease keep this email as your receipt.\n\n${org.name}`;
+  const notify = optionalEnv("NOTIFY_EMAIL");
+  await send({
+    to: [a.email],
+    bcc: notify ? [notify] : undefined,
+    replyTo: replyTo(),
+    subject: `We have received your gift · Ref ${a.reference}`,
+    html,
+    text,
+    idempotencyKey: `ack-${a.reference}`,
+  });
+}
+
+/* --------------------------------------------------------- admin sign-in */
+
+export async function sendAdminSignInLink(email: string, link: string) {
+  await send({
+    to: [email],
+    subject: "Your sign-in link · Ada Gradan admin",
+    html: layout(
+      "Admin sign-in",
+      `<h1 style="font-size:22px;margin:0 0 12px;font-weight:600">Sign in to the admin dashboard</h1>
+<p style="font-size:15px;line-height:1.6;color:#444;margin:0 0 24px">This link works once and expires in 15 minutes.</p>
+<p style="margin:0 0 24px"><a href="${esc(link)}" style="display:inline-block;background:#f5d65e;color:#111111;text-decoration:none;font-weight:600;padding:14px 26px;border-radius:999px">Sign in</a></p>
+<p style="font-size:13px;line-height:1.6;color:#6b6b6b;margin:0">If you didn't ask for this, you can ignore this email. Nobody can sign in without it.</p>`,
+    ),
+    text: `Sign in to the Ada Gradan admin dashboard (works once, expires in 15 minutes):\n${link}\n\nIf you didn't ask for this, ignore this email.`,
+  });
+}
+
 /* ----------------------------------------------------------- contact form */
 
 /** To the Foundation (reply goes to the visitor) + a short acknowledgement. */

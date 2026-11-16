@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useId, useRef } from "react";
-import { sendContactMessage, type ContactState } from "@/app/contact/actions";
+import { sendContactMessage, type ContactState } from "@/app/(site)/contact/actions";
 import { subjects } from "@/lib/contact";
 import { describedBy, fieldClass, FormField } from "@/components/ui/FormField";
 
