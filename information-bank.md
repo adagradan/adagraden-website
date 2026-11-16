@@ -63,8 +63,23 @@ Owerri, Imo State, Nigeria
 ### Telephone
 These are the trustees' personal numbers (CONST p.5, STATUS). **No organisation phone line is listed.** Don't publish them on the website without explicit approval. Use `[PLACEHOLDER: official phone number]`.
 
-### Website, social media, bank / donation details
-**None in the source documents.** Use placeholders. Never fabricate account numbers, payment links or social handles.
+### Bank details (Verified, source: supplied by the client, 16 Nov 2026)
+| Field | Value |
+|---|---|
+| Bank | Fidelity Bank |
+| Branch address | Plot 269, Ikenegbu Layout, Owerri |
+| Sort code | 070100930 |
+| SWIFT | FIDTNGLA |
+| NGN account | 5601837641 |
+| USD account | 5250622151 |
+| GBP account | 5250622522 |
+| EUR account | 5250622498 |
+| Account name | **Not supplied.** The site shows "Ada Gradan Compassionate Care Hands Foundation" (CONST Art. 10 requires an account in the Foundation's name). **Confirm the exact account name as it appears at the bank.** |
+
+Configured in `lib/donate.ts`. Card payments (Flutterwave) are built but switched off (`CARD_PAYMENTS=on` enables them), because Flutterwave was having issues as of 16 Nov 2026.
+
+### Website, social media
+**None in the source documents.** Use placeholders. Never fabricate payment links or social handles.
 
 ---
 
@@ -248,7 +263,7 @@ Remove `founder` if it is not confirmed. Add `url`, `email`, `telephone`, `logo`
 | 8 | Logo and brand assets | A logo **concept** was created on 11 Nov 2026 (cupped hands holding the brand-yellow circle; files in `public/brand/`). It needs the Foundation's approval before it is treated as official or added to structured data (`logo`). |
 | 9 | Founding story / origin of the name | Not stated; don't infer |
 | 10 | Activities, impact figures, stories, partners, photos | None yet; organisation registered Sep 2026 |
-| 11 | Donation methods (bank account, payment provider) | Needed before the Donate page can take real payments |
+| 11 | Bank account name; Flutterwave go-live | Account numbers are now on the site; confirm the exact account name, and switch card payments on once Flutterwave works |
 | 12 | Domain, social media handles | Needed for metadata, footer, `sameAs` |
 | 13 | Preferred short name / acronym | None registered |
 
