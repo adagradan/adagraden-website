@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { DonationForm } from "@/components/sections/donate/DonationForm";
+import { DonationFormWithParams } from "@/components/sections/donate/DonationFormWithParams";
 import { PageHero } from "@/components/sections/PageHero";
 import { Container } from "@/components/ui/Container";
 import { FAQAccordion, type FAQItem } from "@/components/ui/FAQAccordion";
@@ -11,6 +12,8 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ArrowUpRight, ShieldCheck } from "@/components/ui/icons";
 import { programs } from "@/lib/programs";
+import { BANK } from "@/lib/donate";
+import { cardPaymentsEnabled } from "@/lib/server/env";
 import { org } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -32,10 +35,10 @@ const promises = [
 
 const otherWays = [
   {
-    title: "Bank transfer",
-    text: "Our constitution requires an account in the Foundation's own name. Contact us and we will share the account details with you directly.",
-    href: "/contact",
-    cta: "Ask for details",
+    title: "Give from abroad",
+    text: `We hold US Dollar, Pound and Euro accounts at ${BANK.name}, so friends overseas can give in their own currency. Choose your currency above to see the account and SWIFT code.`,
+    href: "#give",
+    cta: "Choose your currency",
   },
   {
     title: "Grants & partnerships",
@@ -51,11 +54,17 @@ const otherWays = [
   },
 ];
 
-const faqs: FAQItem[] = [
+const faqs = (card: boolean): FAQItem[] => [
   {
-    question: "Can I donate online by card?",
+    question: "How can I give?",
+    answer: card
+      ? "By bank transfer in Naira, US Dollars, Pounds or Euros, or by card through Flutterwave's secure checkout. Choose a currency above to see the right account."
+      : "By bank transfer in Naira, US Dollars, Pounds or Euros. Choose a currency above to see the right account, and we will email you the details with a reference to quote. Card payments will be available again soon.",
+  },
+  {
+    question: "How do I make sure my transfer reaches you?",
     answer:
-      "Not yet. Online payments are not set up, and no payment is taken on this website. The donation form shows you how to complete your gift by bank transfer or by contacting us.",
+      "Put the reference we give you in your transfer narration, and only use the account details shown on this page. We match your gift when it arrives and send you a receipt.",
   },
   {
     question: "How will my donation be used?",
@@ -70,9 +79,10 @@ const faqs: FAQItem[] = [
 ];
 
 export default function DonatePage() {
+  const card = cardPaymentsEnabled();
   return (
     <PageTransition>
-      {/* 1 — Hero with gift builder */}
+      {/* 1 — Hero */}
       <PageHero
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Donate" }]}
         title="Give With Confidence, Give With Care"
@@ -81,11 +91,6 @@ export default function DonatePage() {
             Your gift helps us care for orphans, widows, single parents, the
             elderly and the critically ill in our community.
           </p>
-        }
-        media={
-          <div className="load-slide-in rounded-card border border-line bg-surface p-6 shadow-[0_24px_64px_-24px_rgb(0_0_0/0.18)] sm:p-8" style={{ "--d": "0.5s" } as CSSProperties}>
-            <DonationForm programs={programs.map(({ slug, title }) => ({ slug, title }))} />
-          </div>
         }
       >
         <ul className="flex flex-col gap-3">
@@ -104,7 +109,18 @@ export default function DonatePage() {
         </ul>
       </PageHero>
 
-      {/* 2 — What your gift supports */}
+      {/* 2 — The gift builder */}
+      <section id="give" aria-label="Make a gift" className="scroll-mt-[calc(var(--header-h)+1rem)] bg-surface pb-16 md:pb-24">
+        <Container>
+          <div className="load-fade-up" style={{ "--d": "0.6s" } as CSSProperties}>
+            <Suspense fallback={<DonationForm cardEnabled={card} />}>
+              <DonationFormWithParams cardEnabled={card} />
+            </Suspense>
+          </div>
+        </Container>
+      </section>
+
+      {/* 3 — What your gift supports */}
       <Section tone="alt" aria-labelledby="supports-title">
         <Container>
           <SectionHeading
@@ -116,7 +132,8 @@ export default function DonatePage() {
             {programs.map((p, n) => (
               <li key={p.slug} data-reveal="up" style={i(n % 3)}>
                 <Link
-                  href={`/programs/${p.slug}`}
+                  href={`/donate?cause=${p.slug}#give`}
+                  scroll={false}
                   className="group flex h-full items-center gap-4 rounded-card border border-line bg-surface p-3 pr-5 transition-colors duration-300 hover:border-ink/30"
                 >
                   <Media
@@ -144,7 +161,7 @@ export default function DonatePage() {
         </Container>
       </Section>
 
-      {/* 3 — Our promise */}
+      {/* 4 — Our promise */}
       <Section tone="dark" aria-labelledby="promise-title">
         <Container className="grid gap-12 lg:grid-cols-12 lg:gap-16">
           <div className="flex flex-col gap-6 lg:col-span-5">
@@ -168,7 +185,7 @@ export default function DonatePage() {
         </Container>
       </Section>
 
-      {/* 4 — Other ways to give */}
+      {/* 5 — Other ways to give */}
       <Section aria-labelledby="ways-title">
         <Container>
           <SectionHeading id="ways-title" eyebrow="Other Ways To Give" title="More Ways To Stand With Us" />
@@ -199,13 +216,13 @@ export default function DonatePage() {
         </Container>
       </Section>
 
-      {/* 5 — Donation FAQ */}
+      {/* 6 — Donation FAQ */}
       <Section tone="alt" aria-labelledby="dfaq-title">
         <Container>
           <div className="mx-auto max-w-3xl">
             <SectionHeading id="dfaq-title" align="center" eyebrow="Questions" title="Before You Give" />
             <div className="mt-12">
-              <FAQAccordion items={faqs} name="donate-faq" />
+              <FAQAccordion items={faqs(card)} name="donate-faq" />
             </div>
           </div>
         </Container>

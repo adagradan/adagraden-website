@@ -43,9 +43,9 @@ export const faqGroups: FAQGroup[] = [
           "Our constitution requires all income and property to be applied solely to the Foundation's charitable objectives. Nothing is distributed to members as profit, and governing-body members receive no salary beyond out-of-pocket expenses, reasonable rent or reasonable fees for services.",
       },
       {
-        question: "Can I donate online by card?",
+        question: "How can I donate?",
         answer:
-          "Not yet. Online payments are not set up, and no payment is taken on this website. Our Donate page shows how to complete a gift by bank transfer or by contacting us.",
+          "By bank transfer in Naira, US Dollars, Pounds or Euros. Our Donate page shows the right account for your currency and emails you the details with a reference to quote. Card payments will be available again soon."
       },
       {
         question: "How is the Foundation held accountable?",

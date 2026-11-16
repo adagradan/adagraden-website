@@ -1,15 +1,15 @@
 "use server";
 
 import { subjects } from "@/lib/contact";
+import { mailConfigured, sendContactEmails } from "@/lib/server/mail";
 
 /**
  * Contact form Server Action.
  *
- * Delivery: no official inbox or mail provider is confirmed yet
- * (information-bank.md open items #2, #3). Set CONTACT_WEBHOOK_URL to any
- * endpoint that accepts a JSON POST (Formspree, Make, Zapier, Google Apps
- * Script, your own API…) and messages are forwarded there. Until then the
- * form validates but tells the visitor honestly that nothing was sent.
+ * Delivery: emailed to NOTIFY_EMAIL through Resend when RESEND_API_KEY and
+ * MAIL_FROM are set (the visitor gets a short acknowledgement). Otherwise
+ * CONTACT_WEBHOOK_URL is used. With neither, the form tells the visitor
+ * honestly that nothing was sent.
  */
 
 export type ContactField = "name" | "email" | "subject" | "message";
@@ -45,6 +45,18 @@ export async function sendContactMessage(_prev: ContactState, formData: FormData
   else if (values.message.length > 4000) errors.message = "Please keep your message under 4,000 characters.";
   if (Object.keys(errors).length) return { status: "invalid", values, errors };
 
+  // Preferred: email via Resend (RESEND_API_KEY, MAIL_FROM, NOTIFY_EMAIL).
+  if (mailConfigured() && process.env.NOTIFY_EMAIL) {
+    try {
+      await sendContactEmails(values);
+      return { status: "sent", values: { name: "", email: "", subject: "", message: "" } };
+    } catch (e) {
+      console.error("[contact] email failed", e instanceof Error ? e.message : e);
+      return { status: "failed", values };
+    }
+  }
+
+  // Fallback: any JSON webhook (Formspree, Make, Zapier…).
   const endpoint = process.env.CONTACT_WEBHOOK_URL;
   if (!endpoint) return { status: "not-configured", values };
 

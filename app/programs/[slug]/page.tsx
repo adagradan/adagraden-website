@@ -115,7 +115,7 @@ export default async function ProgramPage({ params }: PageProps<"/programs/[slug
                 {program.summary}
               </p>
               <div className="load-fade-up" style={d(1)}>
-                <Button href={donateHref}>Support This Programme</Button>
+                <Button href={`${donateHref}?cause=${program.slug}#give`}>Support This Programme</Button>
               </div>
             </div>
           </div>
