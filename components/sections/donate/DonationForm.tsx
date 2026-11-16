@@ -101,6 +101,28 @@ function Account({ currency }: { currency: CurrencyCode }) {
   );
 }
 
+/**
+ * Fraud guard: a donor's bank shows the account name before money moves. If a
+ * number on this page were ever tampered with, this check stops the transfer.
+ */
+function NameCheck({ currency }: { currency: CurrencyCode }) {
+  return (
+    <div className="mt-3 flex gap-3 rounded-card border border-ink/15 p-3 text-micro leading-relaxed" role="note">
+      <span aria-hidden="true" className="grid size-6 shrink-0 place-items-center rounded-full bg-ink font-semibold text-on-ink">
+        !
+      </span>
+      <p>
+        <strong className="font-semibold">Before you send:</strong>{" "}
+        {currency === "NGN"
+          ? "your bank app will show the account name. "
+          : "check the account name and SWIFT code with your bank. "}
+        It must read <strong className="font-semibold uppercase">{BANK.accountName}</strong>. If it shows any other name,
+        stop and contact us.
+      </p>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ form */
 
 /**
@@ -184,6 +206,7 @@ export function DonationForm({ initialCause = "all", cardEnabled = false }: { in
 
         <div className="mt-6">
           <Account currency={currency} />
+          <NameCheck currency={currency} />
         </div>
 
         <ol className="mt-8 flex flex-col gap-3 text-meta leading-relaxed">
@@ -482,6 +505,7 @@ export function DonationForm({ initialCause = "all", cardEnabled = false }: { in
             <div className="mt-4">
               <p className="mb-1 text-meta font-semibold">Send your {currency} gift to:</p>
               <Account currency={currency} />
+              <NameCheck currency={currency} />
               <p className="mt-3 rounded-card bg-surface-alt p-3 text-micro leading-relaxed">
                 Tap the button below and we will email you these details with a reference to quote, then match your gift when it
                 arrives.

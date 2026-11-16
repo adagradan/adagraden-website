@@ -1,0 +1,16 @@
+# Changes to these files need approval from a trustee before they can merge
+# (requires branch protection on `main` with "Require review from Code Owners").
+# Create the `trustees` team in the adagradan GitHub organisation first — see SECURITY.md.
+
+# Bank account details and everything that displays or emails them
+/lib/donate.ts                              @adagradan/trustees
+/components/sections/donate/                @adagradan/trustees
+/app/(site)/donate/                         @adagradan/trustees
+/lib/server/mail.ts                         @adagradan/trustees
+/lib/server/flutterwave.ts                  @adagradan/trustees
+
+# Security configuration and the watchdog itself
+/next.config.ts                             @adagradan/trustees
+/scripts/check-donation-accounts.mjs        @adagradan/trustees
+/.github/                                   @adagradan/trustees
+/SECURITY.md                                @adagradan/trustees

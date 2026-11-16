@@ -1,0 +1,32 @@
+# Checks the LIVE Donate page every 6 hours against the trusted bank accounts.
+# Setup: see SECURITY.md → "Donation account watchdog".
+name: Donation account watchdog
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check donation accounts on the live site
+        run: node scripts/check-donation-accounts.mjs
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          EXPECTED_ACCOUNTS: ${{ secrets.EXPECTED_ACCOUNTS }}
+          EXPECTED_ACCOUNT_NAME: ${{ vars.EXPECTED_ACCOUNT_NAME }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          ALERT_EMAILS: ${{ secrets.ALERT_EMAILS }}

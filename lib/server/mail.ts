@@ -110,11 +110,12 @@ export async function sendTransferInstructions(p: TransferPledge) {
 <p style="font-size:15px;line-height:1.6;margin:0 0 20px;color:#444">We are so grateful for your gift of <strong>${esc(amount)}</strong> toward <strong>${esc(p.causeLabel)}</strong>. Here is where to send it.</p>
 ${table(rows)}
 <p style="font-size:14px;line-height:1.6;margin:20px 0 0"><strong>Please put your payment reference (${esc(p.reference)}) in the transfer narration</strong> so we can match your gift. When it arrives, we will send you a receipt.</p>
+<p style="font-size:14px;line-height:1.6;margin:16px 0 0;padding:12px 14px;border:1px solid #d9d9d9;border-radius:8px"><strong>Before you send:</strong> your bank will show the account name. It must read <strong>${esc(BANK.accountName.toUpperCase())}</strong>. If it shows any other name, stop and reply to this email.</p>
 <p style="font-size:13px;line-height:1.6;color:#6b6b6b;margin:16px 0 0">Please only use the account details above, which match our website. Questions? Simply reply to this email.</p>`,
   );
   const text = `Thank you, ${firstName(p.name)}.\n\nWe are grateful for your gift of ${amount} toward ${p.causeLabel}. Please send it to:\n\n${rows
     .map(([k, v]) => `${k}: ${v}`)
-    .join("\n")}\n\nPut your payment reference (${p.reference}) in the transfer narration. We will send your receipt when it arrives.\n\n${org.name}`;
+    .join("\n")}\n\nPut your payment reference (${p.reference}) in the transfer narration. We will send your receipt when it arrives.\n\nBefore you send: your bank will show the account name. It must read ${BANK.accountName.toUpperCase()}. If it shows any other name, stop and reply to this email.\n\n${org.name}`;
   const notify = optionalEnv("NOTIFY_EMAIL");
   await send({
     to: [p.email],
