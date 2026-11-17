@@ -213,21 +213,30 @@ export default function AboutPage() {
             <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:col-span-7">
               {governingRoles.map((r, n) => (
                 <li key={r.role} data-reveal="up" style={i(n)} className="flex flex-col gap-4">
-                  {/* Monogram, not a photo: no consented portraits yet. */}
-                  <div
-                    aria-hidden="true"
-                    className={`grid aspect-[4/3] place-items-center rounded-card border ${
-                      r.name ? "border-line bg-surface" : "border-dashed border-ink/20"
-                    }`}
-                  >
-                    <span
-                      className={`grid size-14 place-items-center rounded-full text-card font-semibold sm:size-20 sm:text-section ${
-                        r.name ? "bg-accent text-on-accent" : "bg-surface-alt text-muted"
+                  {r.photo && r.name ? (
+                    <Media
+                      image={{ src: r.photo.src, alt: `Portrait of ${r.name}, ${r.role}`, blurDataURL: r.photo.blurDataURL }}
+                      aspect="aspect-[4/5]"
+                      sizes="(min-width: 1024px) 380px, 50vw"
+                      className="rounded-card border border-line bg-surface"
+                    />
+                  ) : (
+                    /* Monogram until a consented portrait is supplied. */
+                    <div
+                      aria-hidden="true"
+                      className={`grid aspect-[4/5] place-items-center rounded-card border ${
+                        r.name ? "border-line bg-surface" : "border-dashed border-ink/20"
                       }`}
                     >
-                      {r.initials}
-                    </span>
-                  </div>
+                      <span
+                        className={`grid size-14 place-items-center rounded-full text-card font-semibold sm:size-20 sm:text-section ${
+                          r.name ? "bg-accent text-on-accent" : "bg-surface-alt text-muted"
+                        }`}
+                      >
+                        {r.initials}
+                      </span>
+                    </div>
+                  )}
                   <div>
                     <p className="text-meta text-muted">{r.role} · {r.note}</p>
                     <p className={`mt-1 text-body font-medium text-balance sm:text-card ${r.name ? "" : "text-muted"}`}>

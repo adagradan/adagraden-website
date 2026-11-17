@@ -143,8 +143,9 @@ Chairman · Secretary · Treasurer · Board of Trustees
 | Blessing Ngozichukwu **Uzoeto** (surname Uzoeto; first name Blessing; other name Ngozichukwu) | Trustee and **Secretary** | 29 Sep 2026 | Active |
 
 - **Treasurer:** the role exists in the Constitution, but no holder is named. Use `[PLACEHOLDER: Treasurer]`.
-- **Biographies, photos, job titles beyond the above:** none in the documents. Use placeholders. **Don't write bios.**
-- **Published names (client direction, 11 Nov 2026):** the trustees are shown on the website by their names as registered on the CAC certificate (Jacinta Ada Obijiaku, Chairman; Blessing Ngozichukwu Uzoeto, Secretary), without honorifics, photos or bios. Preferred display names and honorifics remain unverified.
+- **Photos (Verified, source: supplied by the client, 16–17 Nov 2026):** portraits of both trustees are shown on the About page (`public/trustees/*.avif`, set in `lib/constitution.ts`). Supplying them is taken as the client's consent to publish.
+- **Biographies, job titles beyond the above:** none in the documents. Use placeholders. **Don't write bios.**
+- **Published names (client direction, 11 Nov 2026):** the trustees are shown on the website by their names as registered on the CAC certificate (Jacinta Ada Obijiaku, Chairman; Blessing Ngozichukwu Uzoeto, Secretary), with the portraits supplied by the client, without honorifics or bios. Preferred display names and honorifics remain unverified.
 - **Secretary's email:** the STATUS report lists `adaobijiaku59@gmail.com` for the Secretary. It is personal: do not publish.
 - The name "Ada" in the foundation's title may relate to the Chairman's other name. **This is unverified; don't state it.**
 
@@ -258,7 +259,7 @@ Remove `founder` if it is not confirmed. Add `url`, `email`, `telephone`, `logo`
 | 3 | Official public phone / WhatsApp | Only personal trustee numbers exist |
 | 4 | Vision, mission wording, core values | Not in the documents |
 | 5 | Treasurer's name | The role exists but is unfilled in the records |
-| 6 | Trustee display names, titles, bios, photos, consent to feature | Needed for Team section |
+| 6 | Trustee display names, titles, bios | Needed for Team section (photos supplied 16–17 Nov 2026) |
 | 7 | Service area (Owerri only? Imo State? wider?) | Not stated |
 | 8 | Logo and brand assets | A logo **concept** was created on 11 Nov 2026 (cupped hands holding the brand-yellow circle; files in `public/brand/`). It needs the Foundation's approval before it is treated as official or added to structured data (`logo`). |
 | 9 | Founding story / origin of the name | Not stated; don't infer |

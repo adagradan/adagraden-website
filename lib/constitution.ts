@@ -72,10 +72,37 @@ export const milestones: Milestone[] = [
  * CONST Art. 7 — governing body. Names exactly as registered on the CAC
  * Certificate and Status Report (29 Sep 2026); no honorifics or bios, which
  * are unconfirmed. Personal contact details are never published.
+ * Portraits supplied by the client (16–17 Nov 2026); 720×900 AVIF, 4:5.
  */
-export const governingRoles: { role: string; note: string; name: string | null; initials: string }[] = [
-  { role: "Chairman", note: "Trustee", name: "Jacinta Ada Obijiaku", initials: "JO" },
-  { role: "Secretary", note: "Trustee", name: "Blessing Ngozichukwu Uzoeto", initials: "BU" },
+export const governingRoles: {
+  role: string;
+  note: string;
+  name: string | null;
+  initials: string;
+  photo?: { src: string; blurDataURL: string };
+}[] = [
+  {
+    role: "Chairman",
+    note: "Trustee",
+    name: "Jacinta Ada Obijiaku",
+    initials: "JO",
+    photo: {
+      src: "/trustees/jacinta-ada-obijiaku.avif",
+      blurDataURL:
+        "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAAAQAgCdASoKAA0AA4BaJQBOgMXIzotU5K2AAP7Km3+BOCwVQt4l22Zxua6I6wF1Rm2UX5aoW6Hb1Hzz47iO0Uq+YOnPz3quM/jg99FfQJ/S5hgAAAA=",
+    },
+  },
+  {
+    role: "Secretary",
+    note: "Trustee",
+    name: "Blessing Ngozichukwu Uzoeto",
+    initials: "BU",
+    photo: {
+      src: "/trustees/blessing-ngozichukwu-uzoeto.avif",
+      blurDataURL:
+        "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAABQAgCdASoKAA0AA4BaJagCdAYsPTQ6+gcuCPAA/pw8yX0/18Ny7Ua8PClxIRGO+3/HkScKrUvZnxN9ZMsXEKP6qdiGP0DtdG3BYl+uqEOPcdeQn0ecD9UYf9mXEyRmBPOABSui8b1qLf9tm7krFhaAAAA=",
+    },
+  },
 ];
 
 /** CONST Arts. 4, 5, 6, 12. */
